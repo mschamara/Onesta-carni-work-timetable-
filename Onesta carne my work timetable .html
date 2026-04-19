@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Log Pro 🇮🇹</title>
+    <style>
+        :root {
+            --bg-color: #f7f7f7;
+            --card-bg: #ffffff;
+            --header-bg: #1e1e1e;
+            --text-main: #333;
+            --green-btn: #38b000;
+            --blue-btn: #0077b6;
+            --purple-btn: #8a2be2;
+            --grey-btn: #adb5bd;
+            --orange-btn: #ff9f1c;
+            --teal-btn: #2ec4b6;
+            --accent-blue: #007bff;
+            --sunday-red: #d90429;
+            --start-time-bg: #e8f5e9;
+            --end-time-bg: #fff3e0;
+            --border-color: #ddd;
+        }
+
+        /* Dark Mode Colors */
+        body.dark-mode {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --header-bg: #000000;
+            --text-main: #e0e0e0;
+            --border-color: #333;
+            --start-time-bg: #1b2e1c;
+            --end-time-bg: #2e221b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0; padding: 10px;
+            transition: 0.3s;
+        }
+
+        .container { max-width: 500px; margin: auto; }
+
+        .header-card {
+            background-color: var(--header-bg);
+            padding: 15px; border-radius: 20px;
+            text-align: center; color: white; margin-bottom: 20px;
+            position: relative;
+        }
+        .header-title { color: #38b000; margin: 0; font-size: 1.2rem; }
+        #headerMonth { color: #007bff; margin: 0; font-size: 0.9rem; text-transform: uppercase; }
+
+        /* Dark Mode Toggle Button */
+        .theme-toggle {
+            position: absolute; top: 15px; right: 15px;
+            background: #333; border: none; color: white;
+            padding: 5px 10px; border-radius: 10px; cursor: pointer;
+        }
+
+        .input-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .input-group { flex: 1; margin-bottom: 15px; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 3px; font-weight: bold; opacity: 0.7; }
+        
+        input, select, textarea {
+            width: 100%; padding: 12px; border: 1px solid var(--border-color);
+            border-radius: 12px; font-size: 0.9rem; box-sizing: border-box;
+            background-color: var(--card-bg); color: var(--text-main);
+        }
+
+        #startTime { background-color: var(--start-time-bg); border-left: 5px solid #2e7d32; }
+        #endTime { background-color: var(--end-time-bg); border-left: 5px solid #ef6c00; }
+
+        .btn-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .btn {
+            padding: 10px; border: none; border-radius: 10px; color: white;
+            font-weight: bold; cursor: pointer; flex: 1; font-size: 0.8rem;
+        }
+        .btn-green { background-color: var(--green-btn); font-size: 1.1rem; padding: 15px; width: 100%; margin-bottom: 10px; }
+        .btn-blue { background-color: var(--blue-btn); }
+        .btn-purple { background-color: var(--purple-btn); }
+        .btn-grey { background-color: var(--grey-btn); }
+        .btn-orange { background-color: var(--orange-btn); }
+        .btn-teal { background-color: var(--teal-btn); }
+        .btn-sort { background-color: #444; width: 100%; margin-bottom: 15px; color: white; }
+
+        .summary-card {
+            background-color: var(--header-bg);
+            padding: 15px; border-radius: 15px;
+            margin-bottom: 20px; display: flex;
+            justify-content: space-around; color: white;
+        }
+        .summary-hours, .summary-total { color: #38b000; font-size: 1.1rem; font-weight: bold; }
+
+        table {
+            width: 100%; border-collapse: collapse; background: var(--card-bg); 
+            border-radius: 15px; overflow: hidden; font-size: 0.85rem;
+        }
+        thead th { background: rgba(0,0,0,0.1); padding: 12px; text-align: left; color: var(--text-main); }
+        tbody td { border-bottom: 1px solid var(--border-color); padding: 10px 8px; }
+
+        .is-sunday { color: var(--sunday-red) !important; font-weight: bold; }
+        .col-hrs { color: var(--accent-blue); font-weight: bold; text-align: right; }
+        .col-earnings { text-align: right; font-weight: bold; }
+        
+        .action-btns { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn-edit { color: var(--blue-btn); cursor: pointer; font-size: 1.1rem; }
+        .btn-delete { color: #ccc; cursor: pointer; font-size: 1.1rem; }
+        
+        small { display: block; font-size: 0.7rem; opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-card">
+        <button class="theme-toggle" onclick="toggleDarkMode()">🌓</button>
+        <h2 class="header-title">Work Log Pro 🇮🇹</h2>
+        <h4 id="headerMonth">Loading...</h4>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label>Rate/Hr (දැන් ගෙවන ගාන):</label>
+            <input type="number" id="hourlyRate" value="10">
+        </div>
+        <div class="input-group">
+            <label>Currency:</label>
+            <select id="currencySymbol" onchange="updateSettings()">
+                <option value="€">Euro (€)</option>
+                <option value="$">USD ($)</option>
+                <option value="£">GBP (£)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="input-group">
+        <label>Work Date:</label>
+        <input type="date" id="workDate" onchange="handleDateChange()">
+    </div>
+
+    <div class="input-group">
+        <label>Note / Work Info:</label>
+        <textarea id="notes" placeholder="Holiday, Overtime..." rows="2"></textarea>
+    </div>
+
+    <div class="input-row">
+        <div class="input-group">
+            <label>Start Time:</label>
+            <input type="time" id="startTime">
+        </div>
+        <div class="input-group">
+            <label>End Time:</label>
+            <input type="time" id="endTime">
+        </div>
+    </div>
+
+    <button class="btn btn-green" onclick="addEntry()">Save Entry ✅</button>
+    
+    <div class="btn-row">
+        <button class="btn btn-blue" onclick="exportCSV()">Excel (CSV)</button>
+        <button class="btn btn-purple" onclick="printPDF()">Print PDF</button>
+        <button class="btn btn-grey" onclick="clearAllData()">Clear All</button>
+    </div>
+
+    <div class="btn-row">
+        <button class="btn btn-orange" onclick="backupData()">Backup 💾</button>
+        <button class="btn btn-teal" onclick="document.getElementById('importFile').click()">Restore 📂</button>
+        <input type="file" id="importFile" style="display:none" accept=".json" onchange="restoreData(event)">
+    </div>
+
+    <button id="sortBtn" class="btn btn-sort" onclick="toggleSort()">Sort: Newest First ↕️</button>
+
+    <div class="summary-card">
+        <div>Hours: <span class="summary-hours" id="totalHours">0.00</span></div>
+        <div>Total: <span class="summary-total" id="totalEarnings">€ 0.00</span></div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Note/Time</th>
+                <th>Hrs</th>
+                <th>Earnings</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="workLog"></tbody>
+    </table>
+</div>
+
+<script>
+    let workEntries = JSON.parse(localStorage.getItem('workEntries')) || [];
+    let isReverse = true;
+    let currency = "€";
+
+    // Initialize
+    const dateInput = document.getElementById('workDate');
+    dateInput.valueAsDate = new Date();
+    if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+    handleDateChange();
+    renderLogs();
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const theme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+        localStorage.setItem('theme', theme);
+    }
+
+    function handleDateChange() {
+        const dateVal = document.getElementById('workDate').value;
+        if(!dateVal) return;
+        const dateObj = new Date(dateVal);
+        document.getElementById('headerMonth').textContent = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        
+        const notesField = document.getElementById('notes');
+        if(dateObj.getDay() === 0) { 
+            notesField.value = "Holiday (Sunday)";
+            document.getElementById('hourlyRate').value = 15; // ඉරිදාට වෙනස් අගයක් auto දීමට අවශ්‍ය නම්
+        } else {
+            notesField.value = "";
+        }
+    }
+
+    function updateSettings() {
+        currency = document.getElementById('currencySymbol').value;
+        renderLogs();
+    }
+
+    function addEntry() {
+        const date = document.getElementById('workDate').value;
+        const start = document.getElementById('startTime').value;
+        const end = document.getElementById('endTime').value;
+        const notes = document.getElementById('notes').value;
+        const rate = parseFloat(document.getElementById('hourlyRate').value) || 10;
+
+        if (!date) return alert("දිනේ ඇතුළත් කරන්න");
+        
+        let hours = (start && end) ? calculateHours(start, end) : 0;
+        
+        // සෑම entry එකකටම ඒ වෙලාවේ තිබුණ rate එක සේව් කරනවා
+        const entry = { id: Date.now(), date, start, end, hours, notes, rate };
+        
+        workEntries.push(entry);
+        saveData(); renderLogs(); clearForm();
+    }
+
+    function calculateHours(start, end) {
+        let s = new Date(`2000-01-01T${start}`);
+        let e = new Date(`2000-01-01T${end}`);
+        if (e < s) e.setDate(e.getDate() + 1);
+        return ((e - s) / 1000 / 60 / 60).toFixed(2);
+    }
+
+    function renderLogs() {
+        const logTable = document.getElementById('workLog');
+        logTable.innerHTML = '';
+        
+        let displayList = [...workEntries].sort((a, b) => 
+            isReverse ? new Date(b.date) - new Date(a.date) : new Date(a.date) - new Date(b.date)
+        );
+
+        let totalH = 0;
+        let totalE = 0;
+
+        displayList.forEach(entry => {
+            const h = parseFloat(entry.hours) || 0;
+            const r = entry.rate || 10; // පරණ ඩේටාවල rate නැත්නම් default 10 ගනියි
+            const earnings = (h * r).toFixed(2);
+            
+            const dObj = new Date(entry.date);
+            const isSunday = dObj.getDay() === 0;
+
+            totalH += h;
+            totalE += parseFloat(earnings);
+
+            logTable.innerHTML += `
+                <tr class="${isSunday ? 'is-sunday' : ''}">
+                    <td>${(dObj.getMonth()+1).toString().padStart(2,'0')}/${dObj.getDate().toString().padStart(2,'0')}<br><small>${dObj.toLocaleDateString('en-US',{weekday:'long'})}</small></td>
+                    <td>
+                        ${entry.start ? entry.start+' - '+entry.end : 'No Time'}
+                        <div style="font-size:0.75rem; opacity:0.7;">${entry.notes}</div>
+                        <small>Rate: ${currency}${r}</small>
+                    </td>
+                    <td class="col-hrs">${h > 0 ? h : '-'}</td>
+                    <td class="col-earnings">${currency} ${earnings}</td>
+                    <td>
+                        <div class="action-btns">
+                            <span class="btn-edit" onclick="editEntry(${entry.id})">🖊️</span>
+                            <span class="btn-delete" onclick="deleteEntry(${entry.id})">✖</span>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('totalHours').innerText = totalH.toFixed(2);
+        document.getElementById('totalEarnings').innerText = `${currency} ${totalE.toFixed(2)}`;
+    }
+
+    function editEntry(id) {
+        const entry = workEntries.find(e => e.id === id);
+        if(!entry) return;
+        
+        document.getElementById('workDate').value = entry.date;
+        document.getElementById('startTime').value = entry.start;
+        document.getElementById('endTime').value = entry.end;
+        document.getElementById('notes').value = entry.notes;
+        document.getElementById('hourlyRate').value = entry.rate || 10;
+        
+        workEntries = workEntries.filter(e => e.id !== id);
+        saveData();
+        renderLogs();
+        window.scrollTo(0,0);
+    }
+
+    function deleteEntry(id) { 
+        if(confirm("මකන්නද?")) { 
+            workEntries = workEntries.filter(e => e.id !== id); 
+            saveData(); renderLogs(); 
+        } 
+    }
+
+    function toggleSort() {
+        isReverse = !isReverse;
+        document.getElementById('sortBtn').textContent = isReverse ? "Sort: Newest First ↕️" : "Sort: Oldest First ↕️";
+        renderLogs();
+    }
+
+    function saveData() { localStorage.setItem('workEntries', JSON.stringify(workEntries)); }
+    
+    function clearForm() {
+        document.getElementById('startTime').value = '';
+        document.getElementById('endTime').value = '';
+        document.getElementById('notes').value = '';
+        handleDateChange();
+    }
+
+    function exportCSV() {
+        let csv = "Date,Day,Start,End,Hours,Rate,Earnings,Notes\n";
+        workEntries.forEach(e => {
+            const d = new Date(e.date);
+            const r = e.rate || 10;
+            csv += `${e.date},${d.toLocaleDateString('en-US',{weekday:'long'})},${e.start},${e.end},${e.hours},${r},${(e.hours*r).toFixed(2)},"${e.notes}"\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'WorkReport.csv'; a.click();
+    }
+
+    function backupData() {
+        const blob = new Blob([JSON.stringify(workEntries)], { type: "application/json" });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'WorkLog_Backup.json'; a.click();
+    }
+
+    function restoreData(event) {
+        const reader = new FileReader();
+        reader.onload = (e) => { 
+            try {
+                workEntries = JSON.parse(e.target.result); 
+                saveData(); renderLogs(); 
+                alert("Restored Successfully! ✅"); 
+            } catch(err) { alert("Invalid File! ❌"); }
+        };
+        reader.readAsText(event.target.files[0]);
+    }
+
+    function printPDF() { window.print(); }
+    function clearAllData() { if(confirm("සෑම දෙයක්ම මකන්නද?")) { workEntries = []; saveData(); renderLogs(); } }
+</script>
+</body>
+</html>
